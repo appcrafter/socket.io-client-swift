@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/socketio/socket.io-client-swift.svg?branch=master)](https://travis-ci.org/socketio/socket.io-client-swift)
 
-##Note: This version is a designated for swift 4.
+##Note: This version is a designated for swift 4 and version numbers reflect the version of swift supported.
 
 # Socket.IO-Client-Swift
 Socket.IO-client for iOS/OS X.
