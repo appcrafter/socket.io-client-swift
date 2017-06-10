@@ -48,16 +48,24 @@ public final class SocketAckEmitter : NSObject {
 
     /// Call to ack receiving this event.
     ///
+    /// If an error occurs trying to transform `items` into their socket representation, a `SocketClientEvent.error`
+    /// will be emitted. The structure of the error data is `[ackNum, items, theError]`
+    ///
     /// - parameter items: A variable number of items to send when acking.
     public func with(_ items: SocketData...) {
         guard ackNum != -1 else { return }
 
-        socket.emitAck(ackNum, with: items)
+        do {
+            socket.emitAck(ackNum, with: try items.map({ try $0.socketRepresentation() }))
+        } catch let err {
+            socket.handleClientEvent(.error, data: [ackNum, items, err])
+        }
     }
 
     /// Call to ack receiving this event.
     ///
     /// - parameter items: An array of items to send when acking. Use `[]` to send nothing.
+    @objc
     public func with(_ items: [Any]) {
         guard ackNum != -1 else { return }
 
@@ -97,8 +105,9 @@ public final class OnAckCallback : NSObject {
     /// - parameter after: The number of seconds before this emit times out if an ack hasn't been received.
     /// - parameter callback: The callback called when an ack is received, or when a timeout happens.
     ///                       To check for timeout, use `SocketAckStatus`'s `noAck` case.
+    @objc
     public func timingOut(after seconds: Int, callback: @escaping AckCallback) {
-        guard let socket = self.socket else { return }
+        guard let socket = self.socket, ackNumber != -1 else { return }
 
         socket.ackHandlers.addAck(ackNumber, callback: callback)
         socket._emit(items, ack: ackNumber)
